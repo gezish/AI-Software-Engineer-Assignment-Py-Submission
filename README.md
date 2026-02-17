@@ -1,64 +1,60 @@
 # AI Experts Assignment (Python)
 
-This assignment evaluates your ability to:
+## 🎯 Project Aim
 
-- set up a small Python project to run reliably (locally + in Docker),
-- pin dependencies for reproducible installs,
-- write focused tests to reproduce a bug,
-- implement a minimal, reviewable fix.
+This project demonstrates production-style engineering practices:
 
-## What you will do
+- Reproducible environments using pinned dependencies
+- Containerized test execution (CI-style)
+- Focused bug identification
+- Minimal, reviewable fix implementation
+- Clear technical documentation
 
-### 1) Dockerfile (required)
+The goal was to identify and fix a bug in the HTTP client while keeping changes minimal and well-tested.
 
-Create a `Dockerfile` so the project can run the test suite in a non-interactive, CI-style environment.
+---
 
-Requirements:
+## ✅ What Was Done
 
-- requirements.txt exists and is used during build (pip install -r requirements.txt)
-- pytest must be included/pinned in requirements.txt
-- The image must run tests by default (use: `CMD ["python", "-m", "pytest", "-v"]`).
-- The build must install dependencies from `requirements.txt`.
+- Added a reproducible `requirements.txt` with pinned dependencies
+- Implemented a Dockerfile to run tests in a clean, isolated environment
+- Identified and fixed a bug in OAuth2 token refresh logic
+- Ensured all existing tests pass
+- Preserved existing structure and avoided unnecessary refactoring
+- Documented reasoning and tradeoffs in `Explanation.md`
 
-### 2) requirements.txt (required)
+The fix ensures expired OAuth2 tokens provided as dictionaries are properly refreshed before sending API requests.
 
-Create a `requirements.txt` with pinned versions, using this format:
+---
 
-- `package==x.y.z`
+## 🧪 How to Run and Test Locally
 
-### 3) README updates (required)
+### 1. Create and activate a virtual python environment
 
-Update this README to include:
+**On Windows:**
+- python -m venv venv
+- venv\Scripts\activate
 
-- how to run the tests locally,
-- how to build and run tests with Docker.
+**On macOS / Linux**
+- python -m venv venv
+- source venv/bin/activate
+### 2. Install dependencies
+- pip install -r requirements.txt
 
-### 4) Find + fix a bug (required)
+### 3. Run the test suite
+- pytest -v
+## 🧪 How to Run and Test with Docker
+### 1. Build the Docker image
+- docker build -t ai-experts-assignment .
+### 2. Run the container
+- docker run --rm ai-experts-assignment
 
-There is a bug somewhere in this repository.
+*NB:-* 
+- The above command with the --rm flag will launches a new container from the ai-assignment image and automatically removes it upon exit. 
+- The --rm flag is ideal for temporary tasks, testing, or one-time AI model runs, as it cleans up the container filesystem and prevents the accumulation of stopped containers. 
+- The container runs the test suite by default using: `python -m pytest -v` and this ensures the tests execute in a clean, non-interactive, CI-style environment.
 
-Your tasks:
+## 📄 Additional Notes
 
-- Identify the bug.
-- Apply the smallest possible fix to make the tests pass.
-- Keep the change minimal and reviewable (no refactors).
-
-## Constraints
-
-- Keep changes minimal and reviewable.
-- Do not refactor unrelated code.
-- Do not introduce extra tooling unless required.
-- You may add tests and the smallest code change needed to fix the bug.
-
-### 5) EXPLANATION.md (required)
-
-Create `EXPLANATION.md` (max 250 words) containing:
-
-- **What was the bug?**
-- **Why did it happen?**
-- **Why does your fix solve it?**
-- **One realistic case / edge case your tests still don’t cover**
-
-## Submission
-
-- Submit a public GitHub repository URL containing your solution to the Google form link provided.
+- The bug analysis and reasoning are documented in `Explanation.md`.
+- Changes were intentionally kept minimal to ensure clarity and reviewability.
