@@ -5,24 +5,24 @@
 The `Client.request()` method did not refresh an expired OAuth2 token
 when the token was provided as a dictionary.
 
-Specifically, when `self.oauth2_token` was a dictionary like:
+When `self.oauth2_token` was a dictionary such as:
 
     {"access_token": "stale", "expires_at": 0}
 
-the client failed to detect that the token was expired and therefore did
-not refresh it. As a result, the `Authorization` header was not set
-correctly.
+the client failed to recognize that the token was expired and therefore
+did not trigger a refresh. As a result, the `Authorization` header was
+not set correctly in API requests.
 
-------------------------------------------------------------------------
+---
 
 ## 2. Why did it happen?
 
-The implementation only checked expiration for `OAuth2Token` instances:
+The implementation validated expiration only for `OAuth2Token`
+instances:
 
     isinstance(self.oauth2_token, OAuth2Token) and self.oauth2_token.expired
 
-However, when the token was a dictionary, the code relied only on
-truthiness:
+For dictionary-based tokens, the code relied solely on truthiness:
 
     if not self.oauth2_token
 
@@ -30,42 +30,41 @@ Since non-empty dictionaries are truthy in Python, expired
 dictionary-based tokens were treated as valid and skipped the refresh
 logic.
 
-This created an inconsistency between the declared type:
+This created a mismatch between the declared type:
 
     Union[OAuth2Token, Dict[str, Any], None]
 
-and the actual validation logic.
+and the actual validation behavior.
 
-------------------------------------------------------------------------
+---
 
 ## 3. Why does the fix solve the issue?
 
 The fix extends the refresh condition to also validate dictionary-based
-tokens by checking their `expires_at` field:
+tokens by checking their `expires_at` value:
 
     isinstance(self.oauth2_token, dict)
     and self.oauth2_token.get("expires_at", 0) <= 0
 
 This ensures that:
 
--   Missing tokens trigger refresh
--   Expired `OAuth2Token` objects trigger refresh
--   Expired dictionary-based tokens also trigger refresh
+- Missing tokens trigger a refresh
+- Expired `OAuth2Token` instances trigger a refresh
+- Expired dictionary-based tokens also trigger a refresh
 
 The change is minimal and localized to the conditional logic, preserving
-the existing structure and behavior of the client.
+the existing structure and avoiding unnecessary refactoring.
 
-------------------------------------------------------------------------
+---
 
 ## 4. What realistic edge case is still not covered?
 
-The current implementation does not validate `Raped` or `Malformed` dictionary
+The current implementation does not validate malformed dictionary
 tokens. For example:
 
--   Missing `"access_token"` key
--   Non-integer `"expires_at"` values
--   Corrupted token structures
+- Missing `"access_token"` keys
+- Non-integer or invalid `"expires_at"` values
+- Unexpected token structures
 
-Additional validation could be added to harden the client against
-malformed token inputs, but this was intentionally avoided to keep the
-fix minimal and focused.
+Additional validation could improve robustness, but it was intentionally
+avoided to keep the fix minimal and focused.
